@@ -15,10 +15,10 @@ def inst_v(data, time):
 
 
 class MainWindow(tk.Frame):
-    def __init__(self, parent, Running=True):
+    def __init__(self, parent, running=True):
         tk.Frame.__init__(self, parent)
 
-        self.Running = Running
+        self.running = running
         self.parent = parent
 
         self.paramframe = tk.Frame()
@@ -52,13 +52,13 @@ class MainWindow(tk.Frame):
         self.sc_ang_entry.grid(row=3, column=1)
 
         self.sc_button = tk.Button(self.paramframe, text="Start Animation",
-                                   command=lambda: self.Start_Animation(float(self.rad_entry.get()),
+                                   command=lambda: self.start_animation(float(self.rad_entry.get()),
                                                                         float(self.freq_entry.get()),
                                                                         float(self.sc_ang_entry.get()),
                                                                         float(self.cr_len_entry.get())))
         self.sc_button.grid(row=4, column=0)
 
-        self.stop_button = tk.Button(self.paramframe, text="Stop", command=lambda: self.Stop_())
+        self.stop_button = tk.Button(self.paramframe, text="Stop", command=lambda: self.stop_())
         self.stop_button.grid(row=4, column=1)
 
         self.Rvar = tk.StringVar(value="SY")
@@ -67,41 +67,37 @@ class MainWindow(tk.Frame):
         self.RSCrank.grid(row=0, column=2, sticky=tk.W)
         self.RScotch.grid(row=1, column=2, sticky=tk.W)
 
-    def Stop_(self):
-        self.Running = False
+        self.fig = Figure()
+        self.figt = Figure()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotframe)
+        self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
+
+    def stop_(self):
+        self.running = False
         self.ani.pause()
         self.anit.pause()
 
-    def Start_Animation(self, r, f, ya, cr, t=0):
+    def start_animation(self, r, f, ya, cr):
         state = self.Rvar.get()
         if state == "SY":
-            self.Start_Scotch(r, f, ya)
+            self.start_scotch(r, f, ya)
         if state == "SC":
-            self.Start_Straight(r, f, ya, cr)
+            self.start_straight(r, f, ya, cr)
 
-    def Start_Straight(self, r, f, ya, cr, t=0, stept=0.01, p_sine=True):
-        self.Running = True
+    def start_straight(self, r, f, cr, t=0, stept=0.01, p_sine=True):
+        self.running = True
 
-        fig = Figure()
-        ax = fig.add_subplot()
-        self.canvas = FigureCanvasTkAgg(fig, master=self.plotframe)
+        ax = self.fig.add_subplot()
         self.canvas.get_tk_widget().grid(row=0, column=0)
 
-        figt = Figure()
-        at = figt.add_subplot()
-        self.canvast = FigureCanvasTkAgg(figt, master=self.plotframe)
+        at = self.figt.add_subplot()
+        self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
         self.canvast.get_tk_widget().grid(row=0, column=2)
-
-        ya = np.deg2rad(ya)
 
         a0 = 0
         w = 2 * np.pi / (1 / f)
-        a = a0 + t * w
-        a = np.deg2rad(a)
         print(str(r))
-        # ly = 2*r/np.cos(a)
         lengths = []
-        pp = [r * np.sin(a), r * np.cos(a)]
         ts, ps = [], []
         first_loop = [[], []]
 
@@ -136,7 +132,7 @@ class MainWindow(tk.Frame):
                 aps.append(inst_v(vps, ts))
                 ats.append(vts[-2])
 
-            if p_sine == True:
+            if p_sine:
 
                 if len(ts) >= 3:
                     cvps.append(inst_v(ps2[0], ts))
@@ -145,8 +141,8 @@ class MainWindow(tk.Frame):
                     caps.append(inst_v(cvps, ts))
 
         ax.axis((-r - 0.1, r + cr + 0.1, -r - 0.1, r + 0.1))
-        figt.tight_layout()
-        fig.tight_layout()
+        self.figt.tight_layout()
+        self.fig.tight_layout()
 
         mot_rot, = ax.plot([], [], color='b')
         shaft_ln, = ax.plot([], [], color='r')
@@ -178,14 +174,13 @@ class MainWindow(tk.Frame):
             displacement.set_data(ts[:frame], lengths[:frame])
             sine_d.set_data(ts[:frame], ps2[0][:frame])
 
-        self.ani = FuncAnimation(fig, update, frames=np.linspace(1, 2499, 2499), interval=50)
-        self.anit = FuncAnimation(figt, update, frames=np.linspace(1, 2499, 2499), interval=50)
+        self.ani = FuncAnimation(self.fig, update, frames=np.linspace(1, 2499, 2499), interval=50)
+        self.anit = FuncAnimation(self.figt, update, frames=np.linspace(1, 2499, 2499), interval=50)
         self.canvas.draw()
         self.canvast.draw()
 
-
-    def Start_Scotch(self, r, f, ya, t=0, stept=0.005):
-        self.Running = True
+    def start_scotch(self, r, f, ya, t=0, stept=0.005):
+        self.running = True
 
         fig = Figure()
         ax = fig.add_subplot()
