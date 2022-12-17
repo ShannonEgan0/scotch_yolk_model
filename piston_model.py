@@ -5,21 +5,53 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 
 
+# Main function
+def main():
+    root = tk.Tk()
+    root.title('Piston Simulation')
+    MainWindow(root).grid(row=0, column=0)
+    root.mainloop()
+
+
+# Differentiation function, for velocity and acceleration calculation
 def inst_v(data, time):
-    y1 = data[-3]
+    y1 = data[-2]
     y2 = data[-1]
-    t1 = time[-3]
+    t1 = time[-2]
     t2 = time[-1]
     v = (y2 - y1) / (t2 - t1)
     return v
 
 
+# Function to determine crank location for straight shaft
+def piston(angular_velocity, radius, time, crank_length=1, initial_angle=0, yolk_angle=0, scotch=False):
+    angle = initial_angle + time * angular_velocity     # Angle in degrees from initial_angle at time
+    piston_position = [radius * np.sin(angle), radius * np.cos(angle)]  # Connection cartesian position [x_axis, y_axis]
+    if scotch:
+        length = piston_position[0] + piston_position[1] * np.tan(np.deg2rad(yolk_angle))
+    else:
+        length = piston_position[0] + np.sqrt(crank_length ** 2 - piston_position[1] ** 2) - crank_length
+    return angle, piston_position, length
+
+
+def ang_velocity(freq):
+    w = 2 * np.pi / (1 / freq)
+    stept = 0.01 * (2 * np.pi / (1 / 0.5)) / (2 * np.pi / (1 / freq))
+    return w, stept
+
+
 class MainWindow(tk.Frame):
-    def __init__(self, parent, running=True):
+    def __init__(self, parent, running=False):
         tk.Frame.__init__(self, parent)
 
+        self.canvas = None
+        self.canvast = None
+        self.anit = None
+        self.ani = None
         self.running = running
         self.parent = parent
+
+        self.points = 3000
 
         self.paramframe = tk.Frame()
         self.paramframe.grid(row=0, column=0, sticky=tk.W)
@@ -39,17 +71,17 @@ class MainWindow(tk.Frame):
         self.freq_entry.insert(0, "0.5")
         self.freq_entry.grid(row=1, column=1)
 
-        self.cr_len_label = tk.Label(self.paramframe, text="Connecting Rod Length (mm): ")
-        self.cr_len_label.grid(row=2, column=0, sticky=tk.E)
-        self.cr_len_entry = tk.Entry(self.paramframe)
-        self.cr_len_entry.insert(0, "10")
-        self.cr_len_entry.grid(row=2, column=1)
-
         self.sc_ang_label = tk.Label(self.paramframe, text="Yoke Angle (Degrees): ")
         self.sc_ang_label.grid(row=3, column=0, sticky=tk.E)
         self.sc_ang_entry = tk.Entry(self.paramframe)
         self.sc_ang_entry.insert(0, "0")
         self.sc_ang_entry.grid(row=3, column=1)
+
+        self.cr_len_label = tk.Label(self.paramframe, text="Connecting Rod Length (mm): ")
+        self.cr_len_label.grid(row=2, column=0, sticky=tk.E)
+        self.cr_len_entry = tk.Entry(self.paramframe)
+        self.cr_len_entry.insert(0, "10")
+        self.cr_len_entry.grid(row=2, column=1)
 
         self.sc_button = tk.Button(self.paramframe, text="Start Animation",
                                    command=lambda: self.start_animation(float(self.rad_entry.get()),
@@ -69,80 +101,78 @@ class MainWindow(tk.Frame):
 
         self.fig = Figure()
         self.figt = Figure()
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotframe)
-        self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
 
     def stop_(self):
-        self.running = False
-        self.ani.pause()
-        self.anit.pause()
+        if self.running:
+            self.ani.pause()
+            self.anit.pause()
+            self.figt.clf()
+            self.fig.clf()
+            self.running = False
 
     def start_animation(self, r, f, ya, cr):
+        self.stop_()
         state = self.Rvar.get()
         if state == "SY":
             self.start_scotch(r, f, ya)
-        if state == "SC":
-            self.start_straight(r, f, ya, cr)
+        elif state == "SC":
+            self.start_straight(r, f, cr)
 
-    def start_straight(self, r, f, cr, t=0, stept=0.01, p_sine=True):
+    def start_straight(self, radius, freq, crank_length, comparison_sine=True):
         self.running = True
 
         ax = self.fig.add_subplot()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotframe)
         self.canvas.get_tk_widget().grid(row=0, column=0)
 
         at = self.figt.add_subplot()
         self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
         self.canvast.get_tk_widget().grid(row=0, column=2)
 
-        a0 = 0
-        w = 2 * np.pi / (1 / f)
-        print(str(r))
-        lengths = []
-        ts, ps = [], []
-        first_loop = [[], []]
+        # Angular velocity calculation based on frequency input
+        w, stept = ang_velocity(freq)
 
+        # Creation of a lot of empty lists, surely these can be minimized
+        lengths = []
+        ts, ps, ps2 = [], [], []
+        first_loop = [[], []]
         vts, vps, aps, ats = [], [], [], []
 
         # For comparison sine wave
         cvps = []
         caps = []
 
-        for x in range(2500):
-
-            t = t + stept
-            a = a0 + t * w
-            pp = [r * np.sin(a), r * np.cos(a)]
+        for x in range(self.points):
+            t = x * stept
+            a, pp, length = piston(w, radius, t, crank_length=crank_length)
             ts.append(t)
             ps.append(pp)
             ps2 = list(zip(*ps))
+            lengths.append(length)
 
-            extra = np.sqrt(cr ** 2 - pp[1] ** 2)
-            length = pp[0] + extra
-            lengths.append(length - cr)
-
+            # Separately recording first loop so that the limits on the scale can be inferred
+            # Eliminates the requirement for testing for new limits throughout entire model
             if a <= 360:
                 first_loop[0].append(pp[0])
                 first_loop[1].append(pp[1])
 
-            if len(ts) >= 3:
+            # Waits until sufficient recordings made for differentiation for velocity
+            if len(ts) >= 2:
                 vps.append(inst_v(lengths, ts))
                 vts.append(ts[-2])
 
-            if len(vps) >= 3:
+            # Waits until sufficient recordings are made for differentiation for acceleration
+            if len(vps) >= 2:
                 aps.append(inst_v(vps, ts))
                 ats.append(vts[-2])
 
-            if p_sine:
-
+            if comparison_sine:
                 if len(ts) >= 3:
                     cvps.append(inst_v(ps2[0], ts))
-
                 if len(cvps) >= 3:
                     caps.append(inst_v(cvps, ts))
 
-        ax.axis((-r - 0.1, r + cr + 0.1, -r - 0.1, r + 0.1))
-        self.figt.tight_layout()
-        self.fig.tight_layout()
+        ax.axis((-radius - 0.1, radius + crank_length + 0.1, -radius - 0.1, radius + 0.1))
 
         mot_rot, = ax.plot([], [], color='b')
         shaft_ln, = ax.plot([], [], color='r')
@@ -154,32 +184,44 @@ class MainWindow(tk.Frame):
         sine_v, = at.plot([], [], color='grey')
         sine_a, = at.plot([], [], color='grey')
 
-        atymax = max(max(aps), max(vps), max(lengths), max(caps), max(cvps), max(ps2[0])) + 0.1
+        # Attempt to improve performance only
+        ps = np.array(ps)
+        lengths = np.array(lengths)
+        vts = np.array(vts)
+        ats = np.array(ats)
+
+        if comparison_sine:
+            atymax = max(max(aps), max(vps), max(lengths), max(caps), max(cvps), max(ps2[0])) + 0.1
+        else:
+            atymax = max(max(aps), max(vps), max(lengths), max(ps2[0])) + 0.1
         atymin = min(min(aps), min(vps), min(lengths)) - 0.1
         at.set_ylim(atymin, atymax)
+        self.figt.tight_layout()
+        self.fig.tight_layout()
 
         def update(frame):
-            frame = int(frame)
+            frame = int(frame + 4)
             at.set_xlim(0, ts[frame])
             if frame < len(first_loop[0]):
                 mot_rot.set_data(first_loop[0][:frame], first_loop[1][:frame])
-            shaft_ln.set_data([ps[frame][0], lengths[frame] + cr], [ps[frame][1], 0])
+            shaft_ln.set_data([ps[frame][0], lengths[frame] + crank_length], [ps[frame][1], 0])
             mot_rod.set_offsets((ps[frame][0], ps[frame][1]))
-            if frame >= 3:
-                velocity.set_data(vts[:frame], vps[:frame])
-                sine_v.set_data(vts[:frame], cvps[:frame])
-            if frame >= 4:
-                acceleration.set_data(ats[:frame], aps[:frame])
-                sine_a.set_data(ats[:frame], caps[:frame])
-            displacement.set_data(ts[:frame], lengths[:frame])
-            sine_d.set_data(ts[:frame], ps2[0][:frame])
 
-        self.ani = FuncAnimation(self.fig, update, frames=np.linspace(1, 2499, 2499), interval=50)
-        self.anit = FuncAnimation(self.figt, update, frames=np.linspace(1, 2499, 2499), interval=50)
+            velocity.set_data(vts[:frame], vps[:frame])
+            acceleration.set_data(ats[:frame], aps[:frame])
+            displacement.set_data(ts[:frame], lengths[:frame])
+
+            if comparison_sine:
+                sine_d.set_data(ts[:frame], ps2[0][:frame])
+                sine_a.set_data(ats[:frame], caps[:frame])
+                sine_v.set_data(vts[:frame], cvps[:frame])
+
+        self.ani = FuncAnimation(self.fig, update, frames=self.points-4, interval=10)
+        self.anit = FuncAnimation(self.figt, update, frames=self.points-4, interval=10)
         self.canvas.draw()
         self.canvast.draw()
 
-    def start_scotch(self, r, f, ya, t=0, stept=0.005):
+    def start_scotch(self, radius, freq, ya):
         self.running = True
 
         fig = Figure()
@@ -190,34 +232,25 @@ class MainWindow(tk.Frame):
         figt = Figure()
         at = figt.add_subplot()
         at.grid(which='Both')
-        at.set_yticks([0, 5, 10, 15, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
         self.canvast = FigureCanvasTkAgg(figt, master=self.plotframe)
         self.canvast.get_tk_widget().grid(row=0, column=2)
 
         fig.tight_layout()
         figt.tight_layout()
 
-        ya = np.deg2rad(ya)
-        yl = r * np.tan(ya)
+        # Angular velocity and time interval calculation
+        w, stept = ang_velocity(freq)
 
-        a0 = 0
-        w = 2 * np.pi / (1 / f)
-        a = a0 + t * w
-        a = np.deg2rad(a)
-        print(str(r))
-        # ly = 2*r/np.cos(a)
         length_with_yolk = []
-        pp = [r * np.sin(a), r * np.cos(a)]
         ts, ps = [], []
         first_loop = [[], []]
 
         vts, vps, aps, ats = [], [], [], []
 
-        for x in range(2500):
+        for x in range(self.points):
+            t = x * stept
+            a, pp, length = piston(w, radius, t, yolk_angle=ya)
 
-            t = t + stept
-            a = a0 + t * w
-            pp = [r * np.sin(a), r * np.cos(a)]
             ts.append(t)
             ps.append(pp)
 
@@ -243,22 +276,21 @@ class MainWindow(tk.Frame):
         velocity, = at.plot([], [], color='r')
         acceleration, = at.plot([], [], color='g')
         displacement, = at.plot([], [], color='b')
-        sine_d, = at.plot([], [], color='grey')
-        sine_v, = at.plot([], [], color='grey')
-        sine_a, = at.plot([], [], color='grey')
 
         atymax = max(max(aps), max(vps), max(length_with_yolk)) + 0.1
         atymin = min(min(aps), min(vps), min(length_with_yolk)) - 0.1
         at.set_ylim(atymin, atymax)
-        ax.axis((-r - yl - 0.1, r + yl + 0.1, -1.5 * r, 1.5 * r))
+        ax.axis((-radius - radius * np.tan(ya) - 0.1, radius + radius * np.tan(ya) + 0.1,
+                 -1.5 * radius, 1.5 * radius))
+        figt.tight_layout()
 
         def update(frame):
             frame = int(frame)
             at.set_xlim(0, ts[frame])
             if frame < len(first_loop[0]):
                 mot_rot.set_data(first_loop[0][:frame], first_loop[1][:frame])
-            shaft_ln.set_data([length_with_yolk[frame] + r * np.tan(ya), length_with_yolk[frame] - r * np.tan(ya)],
-                              [-r, r])
+            shaft_ln.set_data([length_with_yolk[frame] + radius * np.tan(ya), length_with_yolk[frame]
+                               - radius * np.tan(ya)], [-radius, radius])
             mot_rod.set_offsets((ps[frame][0], ps[frame][1]))
             if frame >= 3:
                 velocity.set_data(vts[:frame], vps[:frame])
@@ -266,14 +298,11 @@ class MainWindow(tk.Frame):
                 acceleration.set_data(ats[:frame], aps[:frame])
             displacement.set_data(ts[:frame], length_with_yolk[:frame])
 
-        self.ani = FuncAnimation(fig, update, frames=np.linspace(1, 2499, 2499), interval=50)
-        self.anit = FuncAnimation(figt, update, frames=np.linspace(1, 2499, 2499), interval=50)
+        self.ani = FuncAnimation(fig, update, frames=self.points-4, interval=10)
+        self.anit = FuncAnimation(figt, update, frames=self.points-4, interval=10)
         self.canvas.draw()
         self.canvast.draw()
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.title('Piston Simulation')
-    MainWindow(root).grid(row=0, column=0)
-    root.mainloop()
+    main()
