@@ -26,12 +26,12 @@ def inst_v(data, time):
 # Function to determine crank location for straight shaft
 def piston(angular_velocity, radius, time, crank_length=1, initial_angle=0, yolk_angle=0, scotch=False):
     angle = initial_angle + time * angular_velocity     # Angle in degrees from initial_angle at time
-    piston_position = [radius * np.sin(angle), radius * np.cos(angle)]  # Connection cartesian position [x_axis, y_axis]
+    flywheel_position = [radius * np.sin(angle), radius * np.cos(angle)]  # Connection cartesian position
     if scotch:
-        length = piston_position[0] + piston_position[1] * np.tan(np.deg2rad(yolk_angle))
+        piston_position = flywheel_position[0] + flywheel_position[1] * np.tan(np.deg2rad(yolk_angle))
     else:
-        length = piston_position[0] + np.sqrt(crank_length ** 2 - piston_position[1] ** 2) - crank_length
-    return angle, piston_position, length
+        piston_position = flywheel_position[0] + np.sqrt(crank_length ** 2 - flywheel_position[1] ** 2) - crank_length
+    return angle, flywheel_position, piston_position
 
 
 def ang_velocity(freq):
@@ -59,7 +59,7 @@ class MainWindow(tk.Frame):
         self.plotframe = tk.Frame()
         self.plotframe.grid(row=1, column=0)
 
-        self.rad_label = tk.Label(self.paramframe, text="Crank Radius (mm): ")
+        self.rad_label = tk.Label(self.paramframe, text="Crank Radius (m): ")
         self.rad_label.grid(row=0, column=0, sticky=tk.E)
         self.rad_entry = tk.Entry(self.paramframe)
         self.rad_entry.insert(0, "1")
@@ -77,7 +77,7 @@ class MainWindow(tk.Frame):
         self.sc_ang_entry.insert(0, "0")
         self.sc_ang_entry.grid(row=3, column=1)
 
-        self.cr_len_label = tk.Label(self.paramframe, text="Connecting Rod Length (mm): ")
+        self.cr_len_label = tk.Label(self.paramframe, text="Connecting Rod Length (m): ")
         self.cr_len_label.grid(row=2, column=0, sticky=tk.E)
         self.cr_len_entry = tk.Entry(self.paramframe)
         self.cr_len_entry.insert(0, "10")
@@ -144,7 +144,7 @@ class MainWindow(tk.Frame):
 
         for x in range(self.points):
             t = x * stept
-            a, pp, length = piston(w, radius, t, crank_length=crank_length)
+            a, pp, length = piston(w, radius, t, crank_length=crank_length, scotch=False)
             ts.append(t)
             ps.append(pp)
             ps2 = list(zip(*ps))
@@ -159,17 +159,17 @@ class MainWindow(tk.Frame):
             # Waits until sufficient recordings made for differentiation for velocity
             if len(ts) >= 2:
                 vps.append(inst_v(lengths, ts))
-                vts.append(ts[-2])
+                vts.append(t)
 
             # Waits until sufficient recordings are made for differentiation for acceleration
             if len(vps) >= 2:
                 aps.append(inst_v(vps, ts))
-                ats.append(vts[-2])
+                ats.append(t)
 
             if comparison_sine:
-                if len(ts) >= 3:
+                if len(ts) >= 2:
                     cvps.append(inst_v(ps2[0], ts))
-                if len(cvps) >= 3:
+                if len(cvps) >= 2:
                     caps.append(inst_v(cvps, ts))
 
         ax.axis((-radius - 0.1, radius + crank_length + 0.1, -radius - 0.1, radius + 0.1))
@@ -249,7 +249,7 @@ class MainWindow(tk.Frame):
 
         for x in range(self.points):
             t = x * stept
-            a, pp, length = piston(w, radius, t, yolk_angle=ya)
+            a, pp, length = piston(w, radius, t, yolk_angle=ya, scotch=True)
 
             ts.append(t)
             ps.append(pp)
