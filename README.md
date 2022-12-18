@@ -32,12 +32,36 @@ The program uses Tkinter for a convenient interface, and displays the simulated 
     
 ## Usage
 Each of the parameter fields are to be filled in to dictate the properties of the simulation, noting that yolk angle will have no bearing 
-on the straight connection mode, and the Connecting Rod Length will have no impact on the scotch yolk.
-Crank Radius: Radius of the crank connection to the rim of the motor flywheel
-Motor Frequency: Motor Frequency, or frequency of rotation of the flywheel
-Connecting Rod Length: Length of connection between flywheel connection and shaft connection
-Yolk Angle: Angle of rotation of the scotch yolk, 0° being vertical
+on the straight connection mode, and the Connecting Rod Length will have no impact on the scotch yolk. Description of parameters below:
 
+<figure align="center">
+    <img src="Readme Photos/Menu.jpg" height="150">
+    <figcaption>Menu example</figcaption>   
+</figure>
+
+| Field                 | Effect                                                                |
+|-----------------------|-----------------------------------------------------------------------|
+| Crank Radius          | Radius of the crank connection to the rim of the motor flywheel       |
+| Motor Frequency       | Motor rotation frequency, or frequency of rotation of the flywheel    |
+| Connecting Rod Length | Length of connection between flywheel connection and shaft connection |
+| Yolk Angle            | Angle of rotation of the scotch yolk, 0° being vertical               |
+
+<figure align="center">
+    <img src="Readme Photos/Straight Crank.jpg" height="220">
+    <figcaption>Straight crank connection example</figcaption>   
+</figure>
+
+<figure align="center">
+    <img src="Readme Photos/Scotch Yolk.jpg" height="220">
+    <figcaption>Scotch Yolk example</figcaption>   
+</figure>
+
+## To Do
+- Restructure so that velocity and acceleration values are calculated in their own loops
+- Improve plotting efficiency for animation
+- Include shaft position in scotch yolk for more apparent indication when compared to straight model
 
 ## Contact
 Shannon Egan - shan@egan.mobi
+
+Link to Project - https://github.com/ShannonEgan0/scotch_yolk_model
