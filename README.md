@@ -36,7 +36,9 @@ on the straight connection mode, and the Connecting Rod Length will have no impa
 
 <p align="center">
     <img align="center" src="Readme Photos/Menu.jpg" height="150">
-    <figcaption>Menu example</figcaption>
+</p>
+<p align="center">
+    <i>Menu example</i>
 </p>
 
 
@@ -47,13 +49,19 @@ on the straight connection mode, and the Connecting Rod Length will have no impa
 | Connecting Rod Length | Length of connection between flywheel connection and shaft connection |
 | Yolk Angle            | Angle of rotation of the scotch yolk, 0° being vertical               |
 
+<p align="center">
+    <img src="Readme Photos/Straight Crank.jpg" height="220">
+</p>
+<p align="center">
+    <i>Straight crank connection example</i>
+</p>
 
-<img align="center" src="Readme Photos/Straight Crank.jpg" height="220">
-<figcaption align="center">Straight crank connection example</figcaption>   
-
-
-<img align="center" src="Readme Photos/Scotch Yolk.jpg" height="220">
-<figcaption align="center">Scotch Yolk example</figcaption>
+<p align="center">
+    <img src="Readme Photos/Scotch Yolk.jpg" height="220">
+</p>
+<p align="center">
+    <i>Scotch Yolk example</i>
+</p>
 
 ## To Do
 - Restructure so that velocity and acceleration values are calculated in their own loops
