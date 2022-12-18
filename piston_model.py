@@ -1,4 +1,6 @@
 import tkinter as tk
+
+import matplotlib.pyplot
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -121,14 +123,6 @@ class MainWindow(tk.Frame):
     def start_straight(self, radius, freq, crank_length, comparison_sine=True):
         self.running = True
 
-        ax = self.fig.add_subplot()
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotframe)
-        self.canvas.get_tk_widget().grid(row=0, column=0)
-
-        at = self.figt.add_subplot()
-        self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
-        self.canvast.get_tk_widget().grid(row=0, column=2)
-
         # Angular velocity calculation based on frequency input
         w, stept = ang_velocity(freq)
 
@@ -172,17 +166,28 @@ class MainWindow(tk.Frame):
                 if len(cvps) >= 2:
                     caps.append(inst_v(cvps, ts))
 
+        ax = self.fig.add_subplot()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotframe)
+        self.canvas.get_tk_widget().grid(row=0, column=0)
+
+        at = self.figt.add_subplot()
+        self.canvast = FigureCanvasTkAgg(self.figt, master=self.plotframe)
+        self.canvast.get_tk_widget().grid(row=0, column=2)
+
         ax.axis((-radius - 0.1, radius + crank_length + 0.1, -radius - 0.1, radius + 0.1))
 
         mot_rot, = ax.plot([], [], color='b')
         shaft_ln, = ax.plot([], [], color='r')
         mot_rod = ax.scatter([], [], color='b')
-        velocity, = at.plot([], [], color='r')
-        acceleration, = at.plot([], [], color='g')
-        displacement, = at.plot([], [], color='b')
-        sine_d, = at.plot([], [], color='grey')
+        velocity, = at.plot([], [], color='r', label="Velocity (m/s)")
+        acceleration, = at.plot([], [], color='g', label="Acceleration (m/s²)")
+        displacement, = at.plot([], [], color='b', label="Displacement (m)")
+        sine_d, = at.plot([], [], color='grey', label="Perfect Sine")
         sine_v, = at.plot([], [], color='grey')
         sine_a, = at.plot([], [], color='grey')
+        handles, labels = at.get_legend_handles_labels()
+        at.legend(handles, labels, loc='lower right')
+        at.grid(which='Both')
 
         # Attempt to improve performance only
         ps = np.array(ps)
@@ -200,7 +205,7 @@ class MainWindow(tk.Frame):
         self.fig.tight_layout()
 
         def update(frame):
-            frame = int(frame + 4)
+            frame = int(frame)
             at.set_xlim(0, ts[frame])
             if frame < len(first_loop[0]):
                 mot_rot.set_data(first_loop[0][:frame], first_loop[1][:frame])
@@ -273,9 +278,11 @@ class MainWindow(tk.Frame):
         mot_rot, = ax.plot([], [], color='b')
         shaft_ln, = ax.plot([], [], color='r')
         mot_rod = ax.scatter([], [], color='b')
-        velocity, = at.plot([], [], color='r')
-        acceleration, = at.plot([], [], color='g')
-        displacement, = at.plot([], [], color='b')
+        velocity, = at.plot([], [], color='r', label="Velocity (m/s)")
+        acceleration, = at.plot([], [], color='g', label="Acceleration (m/s²)")
+        displacement, = at.plot([], [], color='b', label="Displacement (m)")
+        handles, labels = at.get_legend_handles_labels()
+        at.legend(handles, labels, loc='lower right')
 
         atymax = max(max(aps), max(vps), max(length_with_yolk)) + 0.1
         atymin = min(min(aps), min(vps), min(length_with_yolk)) - 0.1
