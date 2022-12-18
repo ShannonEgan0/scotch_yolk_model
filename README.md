@@ -47,13 +47,13 @@ on the straight connection mode, and the Connecting Rod Length will have no impa
 | Yolk Angle            | Angle of rotation of the scotch yolk, 0° being vertical               |
 
 <figure align="center">
-    <img src="Readme Photos/Straight Crank.jpg" height="220">
-    <figcaption>Straight crank connection example</figcaption>   
+    <img align="center" src="Readme Photos/Straight Crank.jpg" height="220">
+    <figcaption align="center">Straight crank connection example</figcaption>   
 </figure>
 
 <figure align="center">
-    <img src="Readme Photos/Scotch Yolk.jpg" height="220">
-    <figcaption>Scotch Yolk example</figcaption>   
+    <img align="center" src="Readme Photos/Scotch Yolk.jpg" height="220">
+    <figcaption align="center">Scotch Yolk example</figcaption>   
 </figure>
 
 ## To Do
