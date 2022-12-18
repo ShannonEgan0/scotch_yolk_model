@@ -30,6 +30,14 @@ The program uses Tkinter for a convenient interface, and displays the simulated 
     velocity in turn. Returns a series of len(data) - 1, as no derivative value will be returned for index 1.
     Returns new array of the deriviative of the original
     
+## Usage
+Each of the parameter fields are to be filled in to dictate the properties of the simulation, noting that yolk angle will have no bearing 
+on the straight connection mode, and the Connecting Rod Length will have no impact on the scotch yolk.
+Crank Radius: Radius of the crank connection to the rim of the motor flywheel
+Motor Frequency: Motor Frequency, or frequency of rotation of the flywheel
+Connecting Rod Length: Length of connection between flywheel connection and shaft connection
+Yolk Angle: Angle of rotation of the scotch yolk, 0° being vertical
+
 
 ## Contact
 Shannon Egan - shan@egan.mobi
