@@ -34,10 +34,10 @@ The program uses Tkinter for a convenient interface, and displays the simulated 
 Each of the parameter fields are to be filled in to dictate the properties of the simulation, noting that yolk angle will have no bearing 
 on the straight connection mode, and the Connecting Rod Length will have no impact on the scotch yolk. Description of parameters below:
 
-<figure align="center">
-    <img src="Readme Photos/Menu.jpg" height="150">
-    <figcaption>Menu example</figcaption>   
-</figure>
+
+<img align="center" src="Readme Photos/Menu.jpg" height="150">
+<figcaption align="center">Menu example</figcaption>   
+
 
 | Field                 | Effect                                                                |
 |-----------------------|-----------------------------------------------------------------------|
@@ -46,15 +46,13 @@ on the straight connection mode, and the Connecting Rod Length will have no impa
 | Connecting Rod Length | Length of connection between flywheel connection and shaft connection |
 | Yolk Angle            | Angle of rotation of the scotch yolk, 0° being vertical               |
 
-<figure align="center">
-    <img align="center" src="Readme Photos/Straight Crank.jpg" height="220">
-    <figcaption align="center">Straight crank connection example</figcaption>   
-</figure>
 
-<figure align="center">
-    <img align="center" src="Readme Photos/Scotch Yolk.jpg" height="220">
-    <figcaption align="center">Scotch Yolk example</figcaption>   
-</figure>
+<img align="center" src="Readme Photos/Straight Crank.jpg" height="220">
+<figcaption align="center">Straight crank connection example</figcaption>   
+
+
+<img align="center" src="Readme Photos/Scotch Yolk.jpg" height="220">
+<figcaption align="center">Scotch Yolk example</figcaption>
 
 ## To Do
 - Restructure so that velocity and acceleration values are calculated in their own loops
