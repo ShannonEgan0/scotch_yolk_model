@@ -36,7 +36,7 @@ on the straight connection mode, and the Connecting Rod Length will have no impa
 
 <p align="center">
     <img align="center" src="Readme Photos/Menu.jpg" height="150">
-    <figcaption align="center">Menu example</figcaption>
+    Menu example
 </p>
 
 
