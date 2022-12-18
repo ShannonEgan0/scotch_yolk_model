@@ -34,9 +34,10 @@ The program uses Tkinter for a convenient interface, and displays the simulated 
 Each of the parameter fields are to be filled in to dictate the properties of the simulation, noting that yolk angle will have no bearing 
 on the straight connection mode, and the Connecting Rod Length will have no impact on the scotch yolk. Description of parameters below:
 
-
-<img align="center" src="Readme Photos/Menu.jpg" height="150">
-<figcaption align="center">Menu example</figcaption>   
+<p align="center">
+    <img align="center" src="Readme Photos/Menu.jpg" height="150">
+    <figcaption align="center">Menu example</figcaption>
+</p>
 
 
 | Field                 | Effect                                                                |
