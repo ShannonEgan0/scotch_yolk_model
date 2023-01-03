@@ -221,8 +221,7 @@ class MainWindow(tk.Frame):
 
         self.ani = FuncAnimation(self.fig, update, frames=self.points-4, interval=10)
         self.anit = FuncAnimation(self.figt, update, frames=self.points-4, interval=10)
-        self.canvas.draw()
-        self.canvast.draw()
+
 
     def start_scotch(self, radius, freq, ya):
         self.running = True
@@ -305,8 +304,6 @@ class MainWindow(tk.Frame):
 
         self.ani = FuncAnimation(fig, update, frames=self.points-4, interval=10)
         self.anit = FuncAnimation(figt, update, frames=self.points-4, interval=10)
-        self.canvas.draw()
-        self.canvast.draw()
 
 
 if __name__ == "__main__":
